@@ -1,0 +1,34 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Результаты теста</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+</head>
+<script src="{% static 'admin/js/theme.js' %}"></script>
+<body class="container mt-4">
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-secondary" onclick="cycleTheme()">🌗 Переключить тему</button>
+    </div>
+
+    <h2>Результаты теста</h2>
+    <p><strong>ФИО:</strong> {{ session.full_name }}</p>
+    <p><strong>Тест:</strong> {{ session.test.title }}</p>
+    <p><strong>Правильных ответов:</strong> {{ correct }} из {{ total }}</p>
+    <p><strong>Итоговый балл:</strong> {{ score_percent }}%</p>
+    <p><strong>Статус:</strong> {% if passed %}<span class="text-success">Пройден ✅</span>{% else %}<span class="text-danger">Не пройден ❌</span>{% endif %}</p>
+    {% if request.user.is_staff %}
+    <a href="{% url 'export_csv' session.test.id %}" class="btn btn-outline-primary mt-3">
+        📥 Экспорт всех результатов в CSV
+    </a>
+    {% endif %}
+    {% if passed %}
+    <a href="{% url 'generate_certificate' session.id %}" class="btn btn-success mt-3">
+        🎓 Скачать сертификат
+    </a>
+    {% endif %}
+
+    <a href="{% url 'test_history' %}" class="btn btn-outline-dark">📖 История тестов</a>
+</body>
+</html>
