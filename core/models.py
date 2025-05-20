@@ -2,6 +2,14 @@ from django.db import models
 from django.utils import timezone
 import uuid
 import os
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+
+class User(AbstractUser):
+    is_teacher = models.BooleanField(default=False, verbose_name="Преподаватель")
+
+    def __str__(self):
+        return self.username
 
 # Типы вопросов
 QUESTION_TYPES = (

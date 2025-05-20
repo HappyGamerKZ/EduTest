@@ -1,11 +1,9 @@
 from datetime import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import TestSession, Question, UserAnswer, AnswerOption
-from django.http import FileResponse, HttpResponseRedirect
-from django.urls import reverse
+from django.http import FileResponse
 from .forms import DocxUploadForm, TestSessionForm
 from django.contrib import messages
-from django.core.files.storage import default_storage
 import tempfile
 import traceback
 import random
@@ -13,14 +11,37 @@ from django.utils import timezone
 import csv
 from django.http import HttpResponse
 from .models import TestSession, UserAnswer
-from django.db.models import Q
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.http import HttpResponse
 from django.utils.timezone import localtime
 from .models import Certificate
 from django.core.files.base import ContentFile
-import io
+from .forms import UserRegisterForm
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import user_passes_test
+
+def is_teacher(user):
+    return user.is_authenticated and user.is_teacher
+
+@user_passes_test(is_teacher)
+def teacher_dashboard_view(request):
+    from .models import Test, TestSession
+    tests = Test.objects.all()
+    sessions = TestSession.objects.select_related('test').all()
+    return render(request, 'core/teacher_dashboard.html', {
+        'tests': tests,
+        'sessions': sessions
+    })
+def register_view(request):
+    if request.method == "POST":
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')  # или на главную
+    else:
+        form = UserRegisterForm()
+    return render(request, 'core/register.html', {'form': form})
 
 def generate_certificate_view(request, session_id):
     session = get_object_or_404(TestSession, id=session_id)

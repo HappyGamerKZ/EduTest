@@ -1,5 +1,14 @@
 from django import forms
 from .models import TestSession, Test
+from django.contrib.auth.forms import UserCreationForm
+from .models import User
+
+class UserRegisterForm(UserCreationForm):
+    is_teacher = forms.BooleanField(required=False, label="Я преподаватель")
+
+    class Meta:
+        model = User
+        fields = ("username", "is_teacher", "password1", "password2")
 
 class TestSessionForm(forms.ModelForm):
     test = forms.ModelChoiceField(queryset=Test.objects.all(), empty_label="Выберите тест")
