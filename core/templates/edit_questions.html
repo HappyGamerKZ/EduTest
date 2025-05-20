@@ -1,0 +1,20 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Редактировать вопросы для теста: {{ test.title }}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% for form in formset %}
+        <div style="border:1px solid #ccc; padding:1em; margin-bottom:1em;">
+            {{ form.id }}
+            {{ form.text.label }} {{ form.text }}
+            {{ form.question_type.label }} {{ form.question_type }}
+            {{ form.DELETE }} Удалить<br>
+        </div>
+    {% endfor %}
+
+    <button type="submit">💾 Сохранить</button>
+</form>
+{% endblock %}

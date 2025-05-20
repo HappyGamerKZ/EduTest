@@ -27,9 +27,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-AUTH_USER_MODEL = 'core.User'
+AUTH_USER_MODEL = 'core.CustomUser'
 
 # Application definition
+
+LOGIN_URL = '/login/'
+
+LOGIN_REDIRECT_URL = '/dashboard/'
+
+LOGOUT_REDIRECT_URL = '/login/'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,7 +62,7 @@ ROOT_URLCONF = 'EduTest.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "core" / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

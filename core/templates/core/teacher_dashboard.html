@@ -1,46 +1,17 @@
-{% extends 'core/base.html' %}
-
+{% extends "core/base.html" %}
 {% block content %}
-<h2>Панель преподавателя</h2>
-
-<h4>Тесты:</h4>
+<h2>Кабинет учителя</h2>
+<p><a href="{% url 'teacher_results' %}">📊 Результаты учеников</a></p>
+<a href="{% url 'add_student' %}" class="btn btn-primary">➕ Добавить ученика</a>
+<a href="{% url 'create_test' %}" class="btn btn-success">📝 Создать тест</a>
+<h3>Ваши тесты:</h3>
 <ul>
   {% for test in tests %}
-    <li>
-      <strong>{{ test.title }}</strong> —
-      {{ test.description }}
-      (<a href="{% url 'export_csv' test.id %}">Экспорт</a>)
-    </li>
+    <li>{{ test.title }} — {{ test.subject.name }}</li>
+    <a href="{% url 'edit_test' test.id %}">✏️ Редактировать</a>
+    <a href="{% url 'add_question' test.id %}">➕ Добавить вопрос</a>
   {% empty %}
     <li>Нет тестов</li>
   {% endfor %}
 </ul>
-
-<hr>
-
-<h4>История прохождения:</h4>
-<table class="table">
-  <thead>
-    <tr>
-      <th>ФИО</th>
-      <th>Тест</th>
-      <th>Процент</th>
-      <th>Статус</th>
-      <th>Начато</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for session in sessions %}
-      <tr>
-        <td>{{ session.full_name }}</td>
-        <td>{{ session.test.title }}</td>
-        <td>{{ session.score_percent|default:"0" }}%</td>
-        <td>{{ session.passed|yesno:"✅,❌" }}</td>
-        <td>{{ session.started_at|date:"d.m.Y H:i" }}</td>
-      </tr>
-    {% empty %}
-      <tr><td colspan="5">Нет сессий</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
 {% endblock %}

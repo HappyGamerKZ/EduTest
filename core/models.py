@@ -1,15 +1,52 @@
 from django.db import models
 from django.utils import timezone
 import uuid
-import os
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-class User(AbstractUser):
-    is_teacher = models.BooleanField(default=False, verbose_name="Преподаватель")
+# Расширение модели пользователя
+class CustomUser(AbstractUser):
+    is_teacher = models.BooleanField(default=False)
+    is_student = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username
+
+
+# Модель для класса (группы)
+class SchoolClass(models.Model):
+    name = models.CharField(max_length=50)  # Пример: "10А", "1 курс ИС-21"
+    subjects = models.ManyToManyField('Subject', related_name='classes')
+
+    def __str__(self):
+        return self.name
+
+# Модель для предмета
+class Subject(models.Model):
+    name = models.CharField(max_length=100)  # Пример: "Математика", "Физика", "Python"
+
+    def __str__(self):
+        return self.name
+
+
+# Профиль учителя
+class TeacherProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    subjects = models.ManyToManyField(Subject)
+    classes = models.ManyToManyField(SchoolClass)
+
+    def __str__(self):
+        return self.user.username
+
+# Профиль ученика
+class StudentProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    school_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE)
+    added_by = models.ForeignKey(TeacherProfile, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return self.user.username
+
 
 # Типы вопросов
 QUESTION_TYPES = (
@@ -20,13 +57,12 @@ QUESTION_TYPES = (
 
 class Test(models.Model):
     title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    time_limit = models.PositiveIntegerField(help_text="Время на тест в минутах", null=True, blank=True)
-    pass_score = models.PositiveIntegerField(help_text="Минимальный процент для прохождения", default=50)
-    random_question_count = models.PositiveIntegerField(
-        default=10,
-        help_text="Сколько вопросов показывать при прохождении теста"
-    )
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE)
+    classes = models.ManyToManyField(SchoolClass)
+    created_by = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE)
+    time_limit = models.PositiveIntegerField(null=True, blank=True)
+    random_question_count = models.PositiveIntegerField(default=10)
+    pass_score = models.PositiveIntegerField(default=50)
 
     def __str__(self):
         return self.title

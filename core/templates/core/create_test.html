@@ -1,0 +1,12 @@
+{% extends "core/base.html" %}
+{% block content %}
+<h2>Создать тест</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Создать</button>
+</form>
+
+<a href="{% url 'teacher_dashboard' %}">Назад</a>
+{% endblock %}

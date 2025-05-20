@@ -1,13 +1,16 @@
 {% extends "core/base.html" %}
 {% block content %}
-<h2>История тестов</h2>
+<h2>Результаты учеников по вашим тестам</h2>
 
 {% if sessions %}
   <table border="1" cellpadding="5" cellspacing="0">
     <thead>
       <tr>
+        <th>ФИО</th>
+        <th>Класс</th>
         <th>Тест</th>
         <th>Предмет</th>
+        <th>Дата</th>
         <th>Баллы</th>
         <th>Статус</th>
         <th>Просмотр</th>
@@ -16,18 +19,21 @@
     <tbody>
       {% for session in sessions %}
       <tr>
+        <td>{{ session.full_name }}</td>
+        <td>{{ session.group }}</td>
         <td>{{ session.test.title }}</td>
         <td>{{ session.subject }}</td>
+        <td>{{ session.started_at|date:"d.m.Y H:i" }}</td>
         <td>{{ session.score_percent }}%</td>
-        <td>{% if session.passed %}✅ Пройден{% else %}❌ Не пройден{% endif %}</td>
+        <td>{% if session.passed %}✅{% else %}❌{% endif %}</td>
         <td><a href="{% url 'test_result' session.id %}">📄</a></td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 {% else %}
-  <p>Вы пока не проходили тесты.</p>
+  <p>Нет данных о прохождении тестов.</p>
 {% endif %}
 
-<a href="{% url 'student_dashboard' %}">← Назад</a>
+<a href="{% url 'teacher_dashboard' %}">← Назад</a>
 {% endblock %}
