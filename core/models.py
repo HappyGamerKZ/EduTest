@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+import uuid
 import os
 
 # Типы вопросов
@@ -18,6 +19,7 @@ class Test(models.Model):
         default=10,
         help_text="Сколько вопросов показывать при прохождении теста"
     )
+
     def __str__(self):
         return self.title
 
@@ -50,23 +52,26 @@ class TestSession(models.Model):
     passed = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.full_name} — {self.test.title}"
+        return f"{self.full_name[:30]} — {self.test.title}"
 
 class UserAnswer(models.Model):
     session = models.ForeignKey(TestSession, on_delete=models.CASCADE, related_name='answers')
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     selected_options = models.ManyToManyField(AnswerOption, blank=True)
     text_answer = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Ответ на: {self.question.text}"
+        return f"Ответ: {self.question.text[:50]}"
 
 def certificate_upload_path(instance, filename):
     return f"certificates/session_{instance.session.id}/{filename}"
 
 class Certificate(models.Model):
-    session = models.OneToOneField('TestSession', on_delete=models.CASCADE)
+    session = models.OneToOneField(TestSession, on_delete=models.CASCADE)
     pdf = models.FileField(upload_to=certificate_upload_path)
+    created_at = models.DateTimeField(auto_now_add=True)
+    certificate_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
         return f"Сертификат — {self.session.full_name}"
