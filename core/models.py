@@ -50,6 +50,7 @@ class TestSession(models.Model):
     finished_at = models.DateTimeField(null=True, blank=True)
     score_percent = models.FloatField(null=True, blank=True)
     passed = models.BooleanField(default=False)
+    shown_questions = models.ManyToManyField(Question, blank=True)
 
     def __str__(self):
         return f"{self.full_name[:30]} — {self.test.title}"

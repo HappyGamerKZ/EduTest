@@ -90,7 +90,7 @@ def start_test_view(request):
 def test_page_view(request, session_id):
     session = get_object_or_404(TestSession, id=session_id)
 
-    # Определим, сколько секунд осталось
+    # Вычисление оставшегося времени
     if session.test.time_limit:
         time_limit_seconds = session.test.time_limit * 60
         elapsed = (timezone.now() - session.started_at).total_seconds()
@@ -98,24 +98,60 @@ def test_page_view(request, session_id):
     else:
         remaining = None
 
+    if request.method == 'POST':
+        question_ids = request.session.get(f'shown_questions_{session.id}', [])
+        questions = Question.objects.filter(id__in=question_ids)
+
+        for question in questions:
+            key = f"q{question.id}"
+
+            if question.question_type in ['single', 'multiple']:
+                selected_ids = request.POST.getlist(key)
+                if not selected_ids:
+                    continue
+
+                user_answer, _ = UserAnswer.objects.get_or_create(
+                    session=session,
+                    question=question
+                )
+                user_answer.selected_options.set(
+                    AnswerOption.objects.filter(id__in=selected_ids)
+                )
+
+            elif question.question_type == 'text':
+                text_response = request.POST.get(key, "").strip()
+                if not text_response:
+                    continue
+
+                user_answer, _ = UserAnswer.objects.get_or_create(
+                    session=session,
+                    question=question
+                )
+                user_answer.text_answer = text_response
+                user_answer.save()
+
+        return redirect('test_result', session_id=session.id)
+
+    # Показываем вопросы (GET-запрос)
     questions = list(session.test.questions.all())
     question_count = session.test.random_question_count
     questions = random.sample(questions, min(len(questions), question_count))
 
-    if request.method == 'POST':
-        for question in questions:
-            ...
-        return redirect('test_result', session_id=session.id)
+    # Сохраняем показанные вопросы в сессии браузера
+    request.session[f'shown_questions_{session.id}'] = [q.id for q in questions]
 
     return render(request, 'core/test_page.html', {
         'session': session,
         'questions': questions,
         'time_limit_seconds': remaining
     })
+
     
 def test_result_view(request, session_id):
     session = get_object_or_404(TestSession, id=session_id)
-    questions = session.test.questions.all()
+
+    question_ids = request.session.get(f'shown_questions_{session.id}', [])
+    questions = Question.objects.filter(id__in=question_ids)
     total = questions.count()
     correct = 0
 
@@ -132,7 +168,7 @@ def test_result_view(request, session_id):
                 correct += 1
 
         elif question.question_type == 'text':
-            # Текстовые ответы не проверяются автоматически
+            # Пока не проверяем текстовые
             pass
 
     score_percent = round((correct / total) * 100, 2) if total else 0
@@ -149,6 +185,7 @@ def test_result_view(request, session_id):
         'score_percent': score_percent,
         'passed': passed
     })
+
 
 def import_docx_view(request):
     result = {}
